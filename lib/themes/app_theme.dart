@@ -7,7 +7,7 @@ class AppTheme {
   static const Color secondaryColor = Color(0xFF4CAF50);
   static const Color accentColor = Color(0xFFFF6F00);
   static const Color errorColor = Color(0xFFD32F2F);
-  
+
   // Light Theme
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -32,9 +32,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
   );
@@ -63,9 +61,7 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF1B5E20),
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
   );

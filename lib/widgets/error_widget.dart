@@ -3,12 +3,8 @@ import 'package:flutter/material.dart';
 class CustomErrorWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
-  
-  const CustomErrorWidget({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+
+  const CustomErrorWidget({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +22,9 @@ class CustomErrorWidget extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Oops! Terjadi Kesalahan',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),

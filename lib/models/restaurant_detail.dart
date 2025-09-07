@@ -101,11 +101,7 @@ class CustomerReview {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'review': review,
-      'date': date,
-    };
+    return {'name': name, 'review': review, 'date': date};
   }
 }
 

@@ -1,142 +1,119 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/restaurant_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/restaurant_provider.dart';
+import '../providers/search_ui_provider.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
 
-class SearchScreen extends StatefulWidget {
+class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
-  @override
-  State<SearchScreen> createState() => _SearchScreenState();
-}
-
-class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  String _currentQuery = '';
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _performSearch(String query) {
+  void _performSearch(BuildContext context, String query) {
     if (query.trim().isEmpty) return;
-    
-    setState(() {
-      _currentQuery = query;
-    });
-    
+
+    final searchUIProvider = context.read<SearchUIProvider>();
+    searchUIProvider.setQuery(query);
+
     context.read<RestaurantProvider>().searchRestaurants(query);
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-    final restaurantProvider = context.watch<RestaurantProvider>();
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cari Restaurant'),
-        actions: [
-          IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            ),
-            onPressed: themeProvider.toggleTheme,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Masukkan nama restaurant...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _currentQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+    return ChangeNotifierProvider(
+      create: (_) => SearchUIProvider(),
+      child: Consumer3<ThemeProvider, RestaurantProvider, SearchUIProvider>(
+        builder:
+            (
+              context,
+              themeProvider,
+              restaurantProvider,
+              searchUIProvider,
+              child,
+            ) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('Cari Restaurant'),
+                  actions: [
+                    IconButton(
+                      icon: Icon(
+                        themeProvider.isDarkMode
+                            ? Icons.light_mode
+                            : Icons.dark_mode,
+                      ),
+                      onPressed: themeProvider.toggleTheme,
+                    ),
+                  ],
                 ),
-              ),
-              onSubmitted: _performSearch,
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
-          ),
-          
-          // Search Results
-          Expanded(
-            child: _buildSearchResults(restaurantProvider),
-          ),
-        ],
+                body: Column(
+                  children: [
+                    // Search Bar
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: TextField(
+                        controller: searchUIProvider.searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan nama restaurant...',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon:
+                              searchUIProvider.searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchUIProvider.clearSearch();
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onSubmitted: (query) => _performSearch(context, query),
+                        onChanged: (value) {
+                          // Trigger rebuild untuk suffixIcon
+                          searchUIProvider.notifyListeners();
+                        },
+                      ),
+                    ),
+
+                    // Search Results
+                    Expanded(child: _buildSearchResults(restaurantProvider)),
+                  ],
+                ),
+              );
+            },
       ),
     );
   }
 
   Widget _buildSearchResults(RestaurantProvider provider) {
-    if (_currentQuery.isEmpty) {
-      return const Center(
+    return provider.searchState.when(
+      initial: () => const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search,
-              size: 64,
-              color: Colors.grey,
-            ),
+            Icon(Icons.search, size: 64, color: Colors.grey),
             SizedBox(height: 16),
             Text(
-              'Masukkan kata kunci untuk mencari restaurant',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              'Cari restaurant favoritmu!',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
-      );
-    }
-
-    return provider.searchState.when(
-      initial: () => const SizedBox.shrink(),
+      ),
       loading: () => const LoadingWidget(),
       success: (restaurants) {
         if (restaurants.isEmpty) {
-          return Center(
+          return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.search_off,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 16),
+                Icon(Icons.search_off, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
                 Text(
-                  'Tidak ada restaurant ditemukan untuk "$_currentQuery"',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
+                  'Restaurant tidak ditemukan',
+                  style: TextStyle(fontSize: 16),
                 ),
               ],
             ),
@@ -144,19 +121,18 @@ class _SearchScreenState extends State<SearchScreen> {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.all(16),
           itemCount: restaurants.length,
           itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: RestaurantCard(restaurant: restaurants[index]),
-            );
+            return RestaurantCard(restaurant: restaurants[index]);
           },
         );
       },
       error: (message) => CustomErrorWidget(
         message: message,
-        onRetry: () => _performSearch(_currentQuery),
+        onRetry: () {
+          // Implementasi retry jika diperlukan
+        },
       ),
     );
   }

@@ -5,7 +5,7 @@ import '../services/api_service.dart';
 
 class RestaurantProvider extends ChangeNotifier {
   final ApiService _apiService;
-  
+
   RestaurantListState _restaurantState = RestaurantListInitial();
   RestaurantDetailState _restaurantDetailState = RestaurantDetailInitial();
   SearchState _searchState = SearchInitial();
@@ -32,12 +32,15 @@ class RestaurantProvider extends ChangeNotifier {
 
   // Fetch restaurant detail
   Future<void> fetchRestaurantDetail(String id) async {
-    print('Provider: Starting to fetch restaurant detail for ID: $id'); // Debug log
+    print(
+      'Provider: Starting to fetch restaurant detail for ID: $id',
+    ); // Debug log
     _restaurantDetailState = RestaurantDetailLoading();
     notifyListeners();
-  
+
     try {
-      final restaurant = await _apiService.getRestaurantDetail(id)
+      final restaurant = await _apiService
+          .getRestaurantDetail(id)
           .timeout(const Duration(seconds: 15)); // Tambahkan timeout
       _restaurantDetailState = RestaurantDetailLoaded(restaurant);
       print('Provider: Successfully loaded restaurant detail'); // Debug log
@@ -79,7 +82,7 @@ class RestaurantProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Tambahkan method ini di RestaurantProvider
   void resetRestaurantDetailState() {
     _restaurantDetailState = RestaurantDetailInitial();
@@ -97,18 +100,25 @@ abstract class RestaurantListState {
   }) {
     if (this is RestaurantListInitial) return initial();
     if (this is RestaurantListLoading) return loading();
-    if (this is RestaurantListLoaded) return success((this as RestaurantListLoaded).restaurants);
-    if (this is RestaurantListError) return error((this as RestaurantListError).message);
+    if (this is RestaurantListLoaded) {
+      return success((this as RestaurantListLoaded).restaurants);
+    }
+    if (this is RestaurantListError) {
+      return error((this as RestaurantListError).message);
+    }
     throw Exception('Unknown state');
   }
 }
 
 class RestaurantListInitial extends RestaurantListState {}
+
 class RestaurantListLoading extends RestaurantListState {}
+
 class RestaurantListLoaded extends RestaurantListState {
   final List<Restaurant> restaurants;
   RestaurantListLoaded(this.restaurants);
 }
+
 class RestaurantListError extends RestaurantListState {
   final String message;
   RestaurantListError(this.message);
@@ -124,18 +134,25 @@ abstract class RestaurantDetailState {
   }) {
     if (this is RestaurantDetailInitial) return initial();
     if (this is RestaurantDetailLoading) return loading();
-    if (this is RestaurantDetailLoaded) return success((this as RestaurantDetailLoaded).restaurant);
-    if (this is RestaurantDetailError) return error((this as RestaurantDetailError).message);
+    if (this is RestaurantDetailLoaded) {
+      return success((this as RestaurantDetailLoaded).restaurant);
+    }
+    if (this is RestaurantDetailError) {
+      return error((this as RestaurantDetailError).message);
+    }
     throw Exception('Unknown state');
   }
 }
 
 class RestaurantDetailInitial extends RestaurantDetailState {}
+
 class RestaurantDetailLoading extends RestaurantDetailState {}
+
 class RestaurantDetailLoaded extends RestaurantDetailState {
   final RestaurantDetail restaurant;
   RestaurantDetailLoaded(this.restaurant);
 }
+
 class RestaurantDetailError extends RestaurantDetailState {
   final String message;
   RestaurantDetailError(this.message);
@@ -151,19 +168,24 @@ abstract class SearchState {
   }) {
     if (this is SearchInitial) return initial();
     if (this is SearchLoading) return loading();
-    if (this is SearchLoaded) return success((this as SearchLoaded).restaurants);
+    if (this is SearchLoaded) {
+      return success((this as SearchLoaded).restaurants);
+    }
     if (this is SearchError) return error((this as SearchError).message);
     throw Exception('Unknown state');
   }
 }
 
 class SearchInitial extends SearchState {}
+
 class SearchLoading extends SearchState {}
+
 class SearchLoaded extends SearchState {
   final List<Restaurant> restaurants;
   final int founded;
   SearchLoaded(this.restaurants, this.founded);
 }
+
 class SearchError extends SearchState {
   final String message;
   SearchError(this.message);

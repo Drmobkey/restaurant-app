@@ -8,23 +8,41 @@ class ApiService {
   static const String baseUrl = 'https://restaurant-api.dicoding.dev';
   static const String imageUrl = 'https://restaurant-api.dicoding.dev/images';
 
+  // Add this method to construct image URLs
+  static String getImageUrl(String pictureId, {String size = 'medium'}) {
+    return '$imageUrl/$size/$pictureId';
+  }
+
   // Get all restaurants
   Future<List<Restaurant>> getRestaurants() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/list'),
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/list'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> restaurantList = data['restaurants'];
         return restaurantList.map((json) => Restaurant.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load restaurants');
+        throw Exception('Gagal memuat daftar restaurant. Silakan coba lagi.');
       }
+    } on SocketException {
+      throw Exception(
+        'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.',
+      );
+    } on HttpException {
+      throw Exception(
+        'Terjadi masalah dengan server. Silakan coba lagi nanti.',
+      );
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e.toString().contains('timeout')) {
+        throw Exception('Koneksi terlalu lambat. Silakan coba lagi.');
+      }
+      throw Exception('Terjadi kesalahan. Silakan coba lagi.');
     }
   }
 
@@ -42,74 +60,110 @@ class ApiService {
   Future<RestaurantDetail> getRestaurantDetail(String id) async {
     // Cek koneksi internet dulu
     if (!await hasInternetConnection()) {
-      throw Exception('Tidak ada koneksi internet');
+      throw Exception(
+        'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.',
+      );
     }
 
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/detail/$id'),
-        headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 10)); // Tambahkan timeout
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/detail/$id'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return RestaurantDetail.fromJson(data['restaurant']);
+      } else if (response.statusCode == 404) {
+        throw Exception('Restaurant tidak ditemukan.');
       } else {
-        throw Exception('Failed to load restaurant detail: ${response.statusCode}');
+        throw Exception('Gagal memuat detail restaurant. Silakan coba lagi.');
       }
+    } on SocketException {
+      throw Exception(
+        'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.',
+      );
+    } on HttpException {
+      throw Exception(
+        'Terjadi masalah dengan server. Silakan coba lagi nanti.',
+      );
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e.toString().contains('timeout')) {
+        throw Exception('Koneksi terlalu lambat. Silakan coba lagi.');
+      }
+      throw Exception('Terjadi kesalahan. Silakan coba lagi.');
     }
   }
 
   // Search restaurants
   Future<Map<String, dynamic>> searchRestaurants(String query) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/search?q=$query'),
-        headers: {'Content-Type': 'application/json'},
-      );
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/search?q=$query'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final List<dynamic> restaurantList = data['restaurants'];
-        final restaurants = restaurantList.map((json) => Restaurant.fromJson(json)).toList();
-        
         return {
-          'restaurants': restaurants,
-          'founded': data['founded'] ?? restaurants.length,
+          'restaurants': restaurantList
+              .map((json) => Restaurant.fromJson(json))
+              .toList(),
+          'founded': data['founded'] ?? 0,
         };
       } else {
-        throw Exception('Failed to search restaurants');
+        throw Exception('Gagal mencari restaurant. Silakan coba lagi.');
       }
+    } on SocketException {
+      throw Exception(
+        'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.',
+      );
+    } on HttpException {
+      throw Exception(
+        'Terjadi masalah dengan server. Silakan coba lagi nanti.',
+      );
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e.toString().contains('timeout')) {
+        throw Exception('Koneksi terlalu lambat. Silakan coba lagi.');
+      }
+      throw Exception('Terjadi kesalahan saat mencari. Silakan coba lagi.');
     }
   }
 
   // Add review
   Future<void> addReview(String id, String name, String review) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/review'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'id': id,
-          'name': name,
-          'review': review,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/review'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'id': id, 'name': name, 'review': review}),
+          )
+          .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode != 201) {
-        throw Exception('Failed to add review');
+      if (response.statusCode != 200) {
+        throw Exception('Gagal menambahkan review. Silakan coba lagi.');
       }
+    } on SocketException {
+      throw Exception(
+        'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.',
+      );
+    } on HttpException {
+      throw Exception(
+        'Terjadi masalah dengan server. Silakan coba lagi nanti.',
+      );
     } catch (e) {
-      throw Exception('Network error: $e');
+      if (e.toString().contains('timeout')) {
+        throw Exception('Koneksi terlalu lambat. Silakan coba lagi.');
+      }
+      throw Exception(
+        'Terjadi kesalahan saat menambahkan review. Silakan coba lagi.',
+      );
     }
-  }
-
-  // Get image URL
-  static String getImageUrl(String pictureId, {String size = 'medium'}) {
-    return '$imageUrl/$size/$pictureId';
   }
 }

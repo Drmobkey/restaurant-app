@@ -4,16 +4,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant_detail.dart' as models;
 import '../providers/restaurant_provider.dart';
 import '../services/api_service.dart';
-import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
 
 class RestaurantDetailScreen extends StatefulWidget {
   final String restaurantId;
 
-  const RestaurantDetailScreen({
-    super.key,
-    required this.restaurantId,
-  });
+  const RestaurantDetailScreen({super.key, required this.restaurantId});
 
   @override
   State<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
@@ -26,7 +22,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   @override
   void initState() {
     super.initState();
-    print('DetailScreen: Initializing with restaurant ID: ${widget.restaurantId}'); // Debug log
+    print(
+      'DetailScreen: Initializing with restaurant ID: ${widget.restaurantId}',
+    ); // Debug log
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<RestaurantProvider>();
       // Reset state sebelum fetch baru
@@ -48,7 +46,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       body: Consumer<RestaurantProvider>(
         builder: (context, provider, child) {
           final state = provider.restaurantDetailState;
-          
+
           // Perbaiki nama class state (hapus prefix models.)
           if (state is RestaurantDetailLoading) {
             return Scaffold(
@@ -72,19 +70,18 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               appBar: AppBar(title: const Text('Error')),
               body: CustomErrorWidget(
                 message: state.message,
-                onRetry: () => provider.fetchRestaurantDetail(widget.restaurantId),
+                onRetry: () =>
+                    provider.fetchRestaurantDetail(widget.restaurantId),
               ),
             );
           } else if (state is RestaurantDetailLoaded) {
             return _buildDetailContent(state.restaurant);
           }
-          
+
           // Default case untuk RestaurantDetailInitial
           return Scaffold(
             appBar: AppBar(title: const Text('Restaurant Detail')),
-            body: const Center(
-              child: Text('Initializing...'),
-            ),
+            body: const Center(child: Text('Initializing...')),
           );
         },
       ),
@@ -122,7 +119,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
             background: Hero(
               tag: 'restaurant-image-${restaurant.id}',
               child: CachedNetworkImage(
-                imageUrl: ApiService.getImageUrl(restaurant.pictureId, size: 'large'),
+                imageUrl: ApiService.getImageUrl(
+                  restaurant.pictureId,
+                  size: 'large',
+                ),
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Colors.grey[300],
@@ -217,9 +217,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       children: [
         Text(
           'Deskripsi',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Card(
@@ -242,9 +242,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       children: [
         Text(
           'Menu',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         // Foods
@@ -265,9 +265,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -276,7 +276,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               children: items.map((item) {
                 return Chip(
                   label: Text(item.name),
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                 );
               }).toList(),
             ),
@@ -292,9 +294,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
       children: [
         Text(
           'Review (${restaurant.customerReviews.length})',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         ...restaurant.customerReviews.map((review) {
@@ -307,9 +309,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        child: Text(review.name[0].toUpperCase()),
-                      ),
+                      CircleAvatar(child: Text(review.name[0].toUpperCase())),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -317,15 +317,13 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
                           children: [
                             Text(
                               review.name,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             Text(
                               review.date,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.grey[600]),
                             ),
                           ],
                         ),
@@ -341,7 +339,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -355,9 +353,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
           children: [
             Text(
               'Tambah Review',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -391,7 +389,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   }
 
   Future<void> _submitReview(String restaurantId) async {
-    if (_nameController.text.trim().isEmpty || _reviewController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _reviewController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Nama dan review tidak boleh kosong'),
@@ -407,7 +406,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         _nameController.text.trim(),
         _reviewController.text.trim(),
       );
-    
+
       _nameController.clear();
       _reviewController.clear();
       ScaffoldMessenger.of(context).showSnackBar(

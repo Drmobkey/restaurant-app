@@ -17,9 +17,8 @@ class RestaurantCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => RestaurantDetailScreen(
-                restaurantId: restaurant.id,
-              ),
+              builder: (context) =>
+                  RestaurantDetailScreen(restaurantId: restaurant.id),
             ),
           );
         },
@@ -42,21 +41,17 @@ class RestaurantCard extends StatelessWidget {
                   placeholder: (context, url) => Container(
                     height: 200,
                     color: Colors.grey[300],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    child: const Center(child: CircularProgressIndicator()),
                   ),
                   errorWidget: (context, url, error) => Container(
                     height: 200,
                     color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(Icons.error),
-                    ),
+                    child: const Center(child: Icon(Icons.error)),
                   ),
                 ),
               ),
             ),
-            
+
             // Restaurant Info
             Padding(
               padding: const EdgeInsets.all(16),
@@ -70,34 +65,28 @@ class RestaurantCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           restaurant.name,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 20,
-                          ),
+                          const Icon(Icons.star, color: Colors.amber, size: 20),
                           const SizedBox(width: 4),
                           Text(
                             restaurant.rating.toString(),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // City
                   Row(
                     children: [
@@ -115,9 +104,9 @@ class RestaurantCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // Description
                   Text(
                     restaurant.description,

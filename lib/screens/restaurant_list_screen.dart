@@ -6,7 +6,6 @@ import '../providers/theme_provider.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
-import 'restaurant_detail_screen.dart';
 import 'search_screen.dart';
 
 class RestaurantListScreen extends StatefulWidget {
@@ -41,9 +40,7 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const SearchScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SearchScreen()),
               );
             },
           ),
@@ -57,9 +54,8 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
         ],
       ),
       body: restaurantProvider.restaurantState.when(
-        initial: () => const Center(
-          child: Text('Tekan refresh untuk memuat data'),
-        ),
+        initial: () =>
+            const Center(child: Text('Tekan refresh untuk memuat data')),
         loading: () => const LoadingWidget(),
         success: (restaurants) => _buildRestaurantList(restaurants),
         error: (message) => CustomErrorWidget(
@@ -72,9 +68,7 @@ class _RestaurantListScreenState extends State<RestaurantListScreen> {
 
   Widget _buildRestaurantList(List<Restaurant> restaurants) {
     if (restaurants.isEmpty) {
-      return const Center(
-        child: Text('Tidak ada restoran ditemukan'),
-      );
+      return const Center(child: Text('Tidak ada restoran ditemukan'));
     }
 
     return RefreshIndicator(
