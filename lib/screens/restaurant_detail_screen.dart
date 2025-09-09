@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant_detail.dart' as models;
+import '../models/restaurant.dart';
 import '../providers/restaurant_provider.dart';
+import '../providers/favorite_provider.dart';
 import '../services/api_service.dart';
 import '../widgets/error_widget.dart';
 
@@ -16,8 +18,9 @@ class RestaurantDetailScreen extends StatefulWidget {
 }
 
 class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
-  final _nameController = TextEditingController();
-  final _reviewController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _reviewController = TextEditingController();
+  bool _isDescriptionExpanded = false;
 
   @override
   void initState() {
@@ -89,12 +92,62 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   }
 
   Widget _buildDetailContent(models.RestaurantDetail restaurant) {
+    return Consumer<RestaurantProvider>(
+    builder: (context, provider, _) {
+      final state = provider.restaurantDetailState;
+      if (state is! RestaurantDetailLoaded) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      final restaurant = state.restaurant; // selalu ambil data terbaru
+
     return CustomScrollView(
       slivers: [
-        // App Bar with Image
+        // App Bar with Image and Favorite Button
         SliverAppBar(
           expandedHeight: 250,
           pinned: true,
+          actions: [
+            Consumer<FavoriteProvider>(
+              builder: (context, favoriteProvider, child) {
+                return FutureBuilder<bool>(
+                  future: favoriteProvider.isFavorite(restaurant.id),
+                  builder: (context, snapshot) {
+                    final isFavorite = snapshot.data ?? false;
+                    return IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
+                      ),
+                      onPressed: () async {
+                        final restaurantModel = Restaurant(
+                          id: restaurant.id,
+                          name: restaurant.name,
+                          description: restaurant.description,
+                          pictureId: restaurant.pictureId,
+                          city: restaurant.city,
+                          rating: restaurant.rating,
+                        );
+                        await favoriteProvider.toggleFavorite(restaurantModel);
+                        
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                isFavorite 
+                                  ? 'Dihapus dari favorit' 
+                                  : 'Ditambahkan ke favorit',
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ],
           flexibleSpace: FlexibleSpaceBar(
             title: Hero(
               tag: 'restaurant-name-${restaurant.id}',
@@ -158,6 +211,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         ),
       ],
     );
+    },
+    );
   }
 
   Widget _buildBasicInfo(models.RestaurantDetail restaurant) {
@@ -212,6 +267,9 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
   }
 
   Widget _buildDescription(models.RestaurantDetail restaurant) {
+    const int maxLines = 3;
+    final bool isLongDescription = restaurant.description.length > 150;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -225,10 +283,34 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Text(
-              restaurant.description,
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.justify,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  restaurant.description,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.justify,
+                  maxLines: _isDescriptionExpanded ? null : maxLines,
+                  overflow: _isDescriptionExpanded ? null : TextOverflow.ellipsis,
+                ),
+                if (isLongDescription) ...[
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isDescriptionExpanded = !_isDescriptionExpanded;
+                      });
+                    },
+                    child: Text(
+                      _isDescriptionExpanded ? 'Baca lebih sedikit' : 'Baca selengkapnya',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),

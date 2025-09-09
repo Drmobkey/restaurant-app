@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../models/restaurant.dart';
 import '../models/restaurant_detail.dart';
@@ -146,24 +147,28 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode != 200) {
-        throw Exception('Gagal menambahkan review. Silakan coba lagi.');
+      final responseData = json.decode(response.body);
+      
+      if (response.statusCode != 201) {
+        throw Exception(responseData['message'] ?? 'Gagal menambahkan review');
       }
     } on SocketException {
       throw Exception(
         'Tidak ada koneksi internet. Periksa koneksi Anda dan coba lagi.',
+      );
+    } on TimeoutException {
+      throw Exception(
+        'Koneksi timeout. Silakan coba lagi.',
       );
     } on HttpException {
       throw Exception(
         'Terjadi masalah dengan server. Silakan coba lagi nanti.',
       );
     } catch (e) {
-      if (e.toString().contains('timeout')) {
-        throw Exception('Koneksi terlalu lambat. Silakan coba lagi.');
+      if (e.toString().contains('Exception:')) {
+        rethrow;
       }
-      throw Exception(
-        'Terjadi kesalahan saat menambahkan review. Silakan coba lagi.',
-      );
+      throw Exception('Terjadi kesalahan tidak terduga. Silakan coba lagi.');
     }
   }
 }
